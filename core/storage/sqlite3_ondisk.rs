@@ -513,10 +513,10 @@ pub fn begin_write_btree_page(pager: &Pager, page: &Rc<RefCell<Page>>) -> Result
 
 #[derive(Debug, Clone)]
 pub enum BTreeCell {
-    TableInteriorCell(TableInteriorCell),
-    TableLeafCell(TableLeafCell),
-    IndexInteriorCell(IndexInteriorCell),
-    IndexLeafCell(IndexLeafCell),
+    TableInterior(TableInteriorCell),
+    TableLeaf(TableLeafCell),
+    IndexInterior(IndexInteriorCell),
+    IndexLeaf(IndexLeafCell),
 }
 
 #[derive(Debug, Clone)]
@@ -555,7 +555,7 @@ pub fn read_btree_cell(page: &[u8], page_type: &PageType, pos: usize) -> Result<
             let (payload_size, nr) = read_varint(&page[pos..])?;
             pos += nr;
             let (payload, first_overflow_page) = read_payload(&page[pos..], payload_size as usize);
-            Ok(BTreeCell::IndexInteriorCell(IndexInteriorCell {
+            Ok(BTreeCell::IndexInterior(IndexInteriorCell {
                 left_child_page,
                 payload,
                 first_overflow_page,
@@ -567,7 +567,7 @@ pub fn read_btree_cell(page: &[u8], page_type: &PageType, pos: usize) -> Result<
                 u32::from_be_bytes([page[pos], page[pos + 1], page[pos + 2], page[pos + 3]]);
             pos += 4;
             let (rowid, _) = read_varint(&page[pos..])?;
-            Ok(BTreeCell::TableInteriorCell(TableInteriorCell {
+            Ok(BTreeCell::TableInterior(TableInteriorCell {
                 _left_child_page: left_child_page,
                 _rowid: rowid,
             }))
@@ -577,7 +577,7 @@ pub fn read_btree_cell(page: &[u8], page_type: &PageType, pos: usize) -> Result<
             let (payload_size, nr) = read_varint(&page[pos..])?;
             pos += nr;
             let (payload, first_overflow_page) = read_payload(&page[pos..], payload_size as usize);
-            Ok(BTreeCell::IndexLeafCell(IndexLeafCell {
+            Ok(BTreeCell::IndexLeaf(IndexLeafCell {
                 payload,
                 first_overflow_page,
             }))
@@ -589,7 +589,7 @@ pub fn read_btree_cell(page: &[u8], page_type: &PageType, pos: usize) -> Result<
             let (rowid, nr) = read_varint(&page[pos..])?;
             pos += nr;
             let (payload, first_overflow_page) = read_payload(&page[pos..], payload_size as usize);
-            Ok(BTreeCell::TableLeafCell(TableLeafCell {
+            Ok(BTreeCell::TableLeaf(TableLeafCell {
                 _rowid: rowid,
                 _payload: payload,
                 first_overflow_page,

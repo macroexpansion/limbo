@@ -66,8 +66,8 @@ impl PageIO for FileStorage {
         };
         let size = r.buf().len();
         assert!(page_idx > 0);
-        if size < 512 || size > 65536 || size & (size - 1) != 0 {
-            return Err(LimboError::NotADB.into());
+        if !(512..=65536).contains(&size) || size & (size - 1) != 0 {
+            return Err(LimboError::NotADB);
         }
         let pos = (page_idx - 1) * size;
         self.file.pread(pos, c)?;

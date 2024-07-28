@@ -81,7 +81,7 @@ impl TimeUnit {
 fn get_max_datetime_exclusive() -> NaiveDateTime {
     // The maximum date in SQLite is 9999-12-31
     NaiveDateTime::new(
-        NaiveDate::from_ymd_opt(10000, 01, 01).unwrap(),
+        NaiveDate::from_ymd_opt(10000, 1, 1).unwrap(),
         NaiveTime::from_hms_milli_opt(00, 00, 00, 000).unwrap(),
     )
 }
@@ -187,10 +187,10 @@ fn get_date_time_from_time_value_string(value: &str) -> Result<NaiveDateTime, Da
         }
     }
 
-    return Err(DateTimeError::InvalidArgument(format!(
+    Err(DateTimeError::InvalidArgument(format!(
         "Invalid time value: {}",
         value
-    )));
+    )))
 }
 
 fn parse_datetime_with_optional_tz(
@@ -264,6 +264,7 @@ fn get_time_from_naive_datetime(value: NaiveDateTime) -> String {
     value.format("%H:%M:%S").to_string()
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use std::rc::Rc;

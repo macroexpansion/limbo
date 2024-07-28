@@ -240,7 +240,7 @@ pub fn translate_processed_where<'a>(
         translate_condition_expr(
             program,
             select,
-            &term.expr,
+            term.expr,
             cursor_hint,
             ConditionMetadata {
                 jump_if_condition_is_true: false,
@@ -307,14 +307,12 @@ fn translate_condition_expr(
             let lhs_reg = program.alloc_register();
             let rhs_reg = program.alloc_register();
             let _ = translate_expr(program, Some(select), lhs, lhs_reg, cursor_hint);
-            match lhs.as_ref() {
-                ast::Expr::Literal(_) => program.mark_last_insn_constant(),
-                _ => {}
+            if let ast::Expr::Literal(_) = lhs.as_ref() {
+                program.mark_last_insn_constant()
             }
             let _ = translate_expr(program, Some(select), rhs, rhs_reg, cursor_hint);
-            match rhs.as_ref() {
-                ast::Expr::Literal(_) => program.mark_last_insn_constant(),
-                _ => {}
+            if let ast::Expr::Literal(_) = rhs.as_ref() {
+                program.mark_last_insn_constant()
             }
             match op {
                 ast::Operator::Greater => {
@@ -648,10 +646,7 @@ fn translate_condition_expr(
             escape: _,
         } => {
             let cur_reg = program.alloc_register();
-            assert!(match rhs.as_ref() {
-                ast::Expr::Literal(_) => true,
-                _ => false,
-            });
+            matches!(rhs.as_ref(), ast::Expr::Literal(_));
             match op {
                 ast::LikeOperator::Like => {
                     let pattern_reg = program.alloc_register();
@@ -690,26 +685,24 @@ fn translate_condition_expr(
                         condition_metadata.jump_target_when_false,
                     );
                 }
+            } else if condition_metadata.jump_if_condition_is_true {
+                program.emit_insn_with_label_dependency(
+                    Insn::IfNot {
+                        reg: cur_reg,
+                        target_pc: condition_metadata.jump_target_when_true,
+                        null_reg: cur_reg,
+                    },
+                    condition_metadata.jump_target_when_true,
+                );
             } else {
-                if condition_metadata.jump_if_condition_is_true {
-                    program.emit_insn_with_label_dependency(
-                        Insn::IfNot {
-                            reg: cur_reg,
-                            target_pc: condition_metadata.jump_target_when_true,
-                            null_reg: cur_reg,
-                        },
-                        condition_metadata.jump_target_when_true,
-                    );
-                } else {
-                    program.emit_insn_with_label_dependency(
-                        Insn::If {
-                            reg: cur_reg,
-                            target_pc: condition_metadata.jump_target_when_false,
-                            null_reg: cur_reg,
-                        },
-                        condition_metadata.jump_target_when_false,
-                    );
-                }
+                program.emit_insn_with_label_dependency(
+                    Insn::If {
+                        reg: cur_reg,
+                        target_pc: condition_metadata.jump_target_when_false,
+                        null_reg: cur_reg,
+                    },
+                    condition_metadata.jump_target_when_false,
+                );
             }
         }
         _ => todo!("op {:?} not implemented", expr),
@@ -770,11 +763,11 @@ fn introspect_expression_for_table_refs<'a>(
             table_refs.extend(introspect_expression_for_table_refs(select, lhs)?);
             table_refs.extend(introspect_expression_for_table_refs(select, rhs)?);
         }
-        ast::Expr::FunctionCall { args, .. } => {
-            if let Some(args) = args {
-                for arg in args {
-                    table_refs.extend(introspect_expression_for_table_refs(select, arg)?);
-                }
+        ast::Expr::FunctionCall {
+            args: Some(args), ..
+        } => {
+            for arg in args {
+                table_refs.extend(introspect_expression_for_table_refs(select, arg)?);
             }
         }
         ast::Expr::InList { lhs, rhs, .. } => {

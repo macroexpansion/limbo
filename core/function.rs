@@ -45,25 +45,25 @@ pub enum ScalarFunc {
     Unicode,
 }
 
-impl ToString for ScalarFunc {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for ScalarFunc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ScalarFunc::Coalesce => "coalesce".to_string(),
-            ScalarFunc::Like => "like(2)".to_string(),
-            ScalarFunc::Abs => "abs".to_string(),
-            ScalarFunc::Upper => "upper".to_string(),
-            ScalarFunc::Lower => "lower".to_string(),
-            ScalarFunc::Random => "random".to_string(),
-            ScalarFunc::Trim => "trim".to_string(),
-            ScalarFunc::LTrim => "ltrim".to_string(),
-            ScalarFunc::RTrim => "rtrim".to_string(),
-            ScalarFunc::Round => "round".to_string(),
-            ScalarFunc::Length => "length".to_string(),
-            ScalarFunc::Min => "min".to_string(),
-            ScalarFunc::Max => "max".to_string(),
-            ScalarFunc::Date => "date".to_string(),
-            ScalarFunc::Time => "time".to_string(),
-            ScalarFunc::Unicode => "unicode".to_string(),
+            ScalarFunc::Coalesce => write!(f, "coalesce"),
+            ScalarFunc::Like => write!(f, "like(2)"),
+            ScalarFunc::Abs => write!(f, "abs"),
+            ScalarFunc::Upper => write!(f, "upper"),
+            ScalarFunc::Lower => write!(f, "lower"),
+            ScalarFunc::Random => write!(f, "random"),
+            ScalarFunc::Trim => write!(f, "trim"),
+            ScalarFunc::LTrim => write!(f, "ltrim"),
+            ScalarFunc::RTrim => write!(f, "rtrim"),
+            ScalarFunc::Round => write!(f, "round"),
+            ScalarFunc::Length => write!(f, "length"),
+            ScalarFunc::Min => write!(f, "min"),
+            ScalarFunc::Max => write!(f, "max"),
+            ScalarFunc::Date => write!(f, "date"),
+            ScalarFunc::Time => write!(f, "time"),
+            ScalarFunc::Unicode => write!(f, "unicode"),
         }
     }
 }

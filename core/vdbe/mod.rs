@@ -494,7 +494,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] == &state.registers[rhs] {
+                            if state.registers[lhs] == state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;
@@ -516,7 +516,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] != &state.registers[rhs] {
+                            if state.registers[lhs] != state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;
@@ -538,7 +538,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] < &state.registers[rhs] {
+                            if state.registers[lhs] < state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;
@@ -560,7 +560,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] <= &state.registers[rhs] {
+                            if state.registers[lhs] <= state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;
@@ -582,7 +582,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] > &state.registers[rhs] {
+                            if state.registers[lhs] > state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;
@@ -604,7 +604,7 @@ impl Program {
                             state.pc = target_pc;
                         }
                         _ => {
-                            if &state.registers[lhs] >= &state.registers[rhs] {
+                            if state.registers[lhs] >= state.registers[rhs] {
                                 state.pc = target_pc;
                             } else {
                                 state.pc += 1;

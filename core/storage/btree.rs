@@ -108,7 +108,7 @@ impl BTreeCursor {
             }
             let cell = page.cell_get(mem_page.cell_idx())?;
             match &cell {
-                BTreeCell::TableInteriorCell(TableInteriorCell {
+                BTreeCell::TableInterior(TableInteriorCell {
                     _left_child_page,
                     _rowid,
                 }) => {
@@ -118,7 +118,7 @@ impl BTreeCursor {
                     self.page.replace(Some(Rc::new(mem_page)));
                     continue;
                 }
-                BTreeCell::TableLeafCell(TableLeafCell {
+                BTreeCell::TableLeaf(TableLeafCell {
                     _rowid,
                     _payload,
                     first_overflow_page: _,
@@ -127,10 +127,10 @@ impl BTreeCursor {
                     let record = crate::storage::sqlite3_ondisk::read_record(_payload)?;
                     return Ok(CursorResult::Ok((Some(*_rowid), Some(record))));
                 }
-                BTreeCell::IndexInteriorCell(_) => {
+                BTreeCell::IndexInterior(_) => {
                     unimplemented!();
                 }
-                BTreeCell::IndexLeafCell(_) => {
+                BTreeCell::IndexLeaf(_) => {
                     unimplemented!();
                 }
             }
@@ -166,7 +166,7 @@ impl BTreeCursor {
             let mut found_cell = false;
             for cell_idx in 0..page.cell_count() {
                 match &page.cell_get(cell_idx)? {
-                    BTreeCell::TableInteriorCell(TableInteriorCell {
+                    BTreeCell::TableInterior(TableInteriorCell {
                         _left_child_page,
                         _rowid,
                     }) => {
@@ -179,7 +179,7 @@ impl BTreeCursor {
                             break;
                         }
                     }
-                    BTreeCell::TableLeafCell(TableLeafCell {
+                    BTreeCell::TableLeaf(TableLeafCell {
                         _rowid: _,
                         _payload: _,
                         first_overflow_page: _,
@@ -188,10 +188,10 @@ impl BTreeCursor {
                             "we don't iterate leaf cells while trying to move to a leaf cell"
                         );
                     }
-                    BTreeCell::IndexInteriorCell(_) => {
+                    BTreeCell::IndexInterior(_) => {
                         unimplemented!();
                     }
-                    BTreeCell::IndexLeafCell(_) => {
+                    BTreeCell::IndexLeaf(_) => {
                         unimplemented!();
                     }
                 }
@@ -415,8 +415,8 @@ impl BTreeCursor {
 
                 let last_cell = page.cell_get(page.cell_count() - 1).unwrap();
                 let last_cell_key = match &last_cell {
-                    BTreeCell::TableLeafCell(cell) => cell._rowid,
-                    BTreeCell::TableInteriorCell(cell) => cell._rowid,
+                    BTreeCell::TableLeaf(cell) => cell._rowid,
+                    BTreeCell::TableInterior(cell) => cell._rowid,
                     _ => unreachable!(), /* not yet supported index tables */
                 };
                 // if not leaf page update rightmost pointer
@@ -426,7 +426,7 @@ impl BTreeCursor {
                         page.rightmost_pointer().unwrap(),
                     );
                     // convert last cell to rightmost pointer
-                    let BTreeCell::TableInteriorCell(last_cell) = &last_cell else {
+                    let BTreeCell::TableInterior(last_cell) = &last_cell else {
                         unreachable!();
                     };
                     page.write_u32(BTREE_HEADER_OFFSET_RIGHTMOST, last_cell._left_child_page);
@@ -744,7 +744,7 @@ fn find_free_cell(page_ref: &PageContent, db_header: Ref<DatabaseHeader>, amount
     let buf = buf_ref.as_slice();
 
     let usable_space = (db_header.page_size - db_header.unused_space as u16) as usize;
-    let maxpc = (usable_space - amount);
+    let maxpc = usable_space - amount;
     let mut found = false;
     while pc <= maxpc {
         let next = u16::from_be_bytes(buf[pc..pc + 2].try_into().unwrap());
@@ -863,7 +863,7 @@ impl Cursor for BTreeCursor {
             Ok(CursorResult::Ok(false))
         } else {
             let equals = match &page.cell_get(cell_idx)? {
-                BTreeCell::TableLeafCell(l) => l._rowid == int_key,
+                BTreeCell::TableLeaf(l) => l._rowid == int_key,
                 _ => unreachable!(),
             };
             Ok(CursorResult::Ok(equals))
@@ -876,12 +876,12 @@ fn find_cell(page: &PageContent, int_key: u64) -> usize {
     let cell_count = page.cell_count();
     while cell_idx < cell_count {
         match page.cell_get(cell_idx).unwrap() {
-            BTreeCell::TableLeafCell(cell) => {
+            BTreeCell::TableLeaf(cell) => {
                 if int_key <= cell._rowid {
                     break;
                 }
             }
-            BTreeCell::TableInteriorCell(cell) => {
+            BTreeCell::TableInterior(cell) => {
                 if int_key <= cell._rowid {
                     break;
                 }

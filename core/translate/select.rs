@@ -49,10 +49,8 @@ impl SrcTable<'_> {
         {
             if *join_type == JoinType::LEFT | JoinType::OUTER {
                 true
-            } else if *join_type == JoinType::RIGHT | JoinType::OUTER {
-                true
             } else {
-                false
+                *join_type == JoinType::RIGHT | JoinType::OUTER
             }
         } else {
             false
@@ -340,9 +338,9 @@ pub fn translate_select(
                 translate_expr(&mut program, Some(&select), sort_col_expr, target, None)?;
             }
             let (_, result_cols_count) = translate_columns(&mut program, &select, None)?;
-            sort_info
-                .as_mut()
-                .map(|inner| inner.count = result_cols_count + sort_columns.len() + 1); // +1 for the key
+            if let Some(inner) = sort_info.as_mut() {
+                inner.count = result_cols_count + sort_columns.len() + 1; // +1 for the key
+            }
             (start, result_cols_count + sort_columns.len())
         } else {
             translate_columns(&mut program, &select, None)?

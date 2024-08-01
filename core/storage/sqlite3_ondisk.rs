@@ -822,10 +822,10 @@ pub fn write_varint(buf: &mut [u8], value: u64) -> usize {
     for i in 0..n {
         buf[i] = encoded[n - 1 - i];
     }
-    return n;
+    n
 }
 
-pub fn begin_read_wal_header(io: &Box<dyn File>) -> Result<Rc<RefCell<WalHeader>>> {
+pub fn begin_read_wal_header(io: &dyn File) -> Result<Rc<RefCell<WalHeader>>> {
     let drop_fn = Rc::new(|_buf| {});
     let buf = Rc::new(RefCell::new(Buffer::allocate(32, drop_fn)));
     let result = Rc::new(RefCell::new(WalHeader::default()));
@@ -855,7 +855,7 @@ fn finish_read_wal_header(buf: Rc<RefCell<Buffer>>, header: Rc<RefCell<WalHeader
 }
 
 pub fn begin_read_wal_frame_header(
-    io: &Box<dyn File>,
+    io: &dyn File,
     offset: usize,
 ) -> Result<Rc<RefCell<WalFrameHeader>>> {
     let drop_fn = Rc::new(|_buf| {});

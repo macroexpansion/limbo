@@ -88,8 +88,8 @@ fn get_max_datetime_exclusive() -> NaiveDateTime {
 
 pub fn get_date_from_time_value(time_value: &OwnedValue) -> crate::Result<String> {
     let dt = parse_naive_date_time(time_value);
-    if dt.is_ok() {
-        return Ok(get_date_from_naive_datetime(dt.unwrap()));
+    if let Ok(value) = dt {
+        Ok(get_date_from_naive_datetime(value))
     } else {
         match dt.unwrap_err() {
             DateTimeError::InvalidArgument(_) => {
@@ -106,8 +106,8 @@ pub fn get_date_from_time_value(time_value: &OwnedValue) -> crate::Result<String
 
 pub fn get_time_from_datetime_value(time_value: &OwnedValue) -> crate::Result<String> {
     let dt = parse_naive_date_time(time_value);
-    if dt.is_ok() {
-        return Ok(get_time_from_naive_datetime(dt.unwrap()));
+    if let Ok(value) = dt {
+        Ok(get_time_from_naive_datetime(value))
     } else {
         match dt.unwrap_err() {
             DateTimeError::InvalidArgument(_) => {

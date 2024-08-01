@@ -281,18 +281,20 @@ pub fn translate_expr(
                         ScalarFunc::Time => {
                             let mut start_reg = 0;
                             if let Some(args) = args {
-                                if args.len() > 1 {
-                                    crate::bail_parse_error!("date function with > 1 arguments. Modifiers are not yet supported.");
-                                } else if args.len() == 1 {
-                                    let arg_reg = program.alloc_register();
-                                    let _ = translate_expr(
-                                        program,
-                                        select,
-                                        &args[0],
-                                        arg_reg,
-                                        cursor_hint,
-                                    )?;
-                                    start_reg = arg_reg;
+                                match args.len().cmp(&1) {
+                                    std::cmp::Ordering::Greater => crate::bail_parse_error!("date function with > 1 arguments. Modifiers are not yet supported."),
+                                    std::cmp::Ordering::Equal => {
+                                        let arg_reg = program.alloc_register();
+                                        let _ = translate_expr(
+                                            program,
+                                            select,
+                                            &args[0],
+                                            arg_reg,
+                                            cursor_hint,
+                                        )?;
+                                        start_reg = arg_reg;
+                                    },
+                                    std::cmp::Ordering::Less => {},
                                 }
                             }
                             program.emit_insn(Insn::Function {

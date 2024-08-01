@@ -12,6 +12,7 @@ use crate::{
     vdbe::{builder::ProgramBuilder, Insn, Program},
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn translate_insert(
     schema: &Schema,
     with: &Option<With>,
@@ -172,9 +173,7 @@ pub fn translate_insert(
             record_reg: record_register,
             flag: 0,
         });
-        program.emit_insn(Insn::InsertAwait {
-            cursor_id: cursor_id,
-        });
+        program.emit_insn(Insn::InsertAwait { cursor_id });
     }
 
     program.emit_insn(Insn::Goto {

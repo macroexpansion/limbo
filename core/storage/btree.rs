@@ -249,8 +249,7 @@ impl BTreeCursor {
         {
             // Data len will be prepended later
             // Key
-            let mut key_varint: Vec<u8> = Vec::new();
-            key_varint.extend(std::iter::repeat(0).take(9));
+            let mut key_varint: Vec<u8> = vec![0; 9];
             let n = write_varint(&mut key_varint.as_mut_slice()[0..9], int_key);
             write_varint(&mut key_varint, int_key);
             key_varint.truncate(n);
@@ -264,8 +263,7 @@ impl BTreeCursor {
 
         {
             // Data len
-            let mut data_len_varint: Vec<u8> = Vec::new();
-            data_len_varint.extend(std::iter::repeat(0).take(9));
+            let mut data_len_varint: Vec<u8> = vec![0; 9];
             let n = write_varint(
                 &mut data_len_varint.as_mut_slice()[0..9],
                 header_size as u64,
@@ -304,14 +302,14 @@ impl BTreeCursor {
     }
 
     /* insert to postion and shift other pointers */
-    fn insert_into_cell(&mut self, page: &mut PageContent, payload: &Vec<u8>, cell_idx: usize) {
+    fn insert_into_cell(&mut self, page: &mut PageContent, payload: &[u8], cell_idx: usize) {
         // TODO: insert into cell payload in internal page
         let pc = self.allocate_cell_space(page, payload.len() as u16);
         let mut buf_ref = RefCell::borrow_mut(&page.buffer);
         let buf: &mut [u8] = buf_ref.as_mut_slice();
 
         // copy data
-        buf[pc as usize..pc as usize + payload.len()].copy_from_slice(&payload);
+        buf[pc as usize..pc as usize + payload.len()].copy_from_slice(payload);
         //  memmove(pIns+2, pIns, 2*(pPage->nCell - i));
         let (pointer_area_pc_by_idx, _) = page.cell_get_raw_pointer_region();
         let pointer_area_pc_by_idx = pointer_area_pc_by_idx + (2 * cell_idx);
@@ -510,9 +508,8 @@ impl BTreeCursor {
     fn read_page_sync(&mut self, page_idx: usize) -> Rc<RefCell<Page>> {
         loop {
             let page_ref = self.pager.read_page(page_idx);
-            match page_ref {
-                Ok(p) => return p,
-                Err(_) => {}
+            if let Ok(p) = page_ref {
+                return p;
             }
         }
     }
@@ -581,7 +578,7 @@ impl BTreeCursor {
 
         let usable_space = (db_header.page_size - db_header.unused_space as u16) as usize;
         assert!(top + amount <= usable_space);
-        return top as u16;
+        top as u16
     }
 
     fn defragment_page(&self, page: &PageContent, db_header: Ref<DatabaseHeader>) {
@@ -699,8 +696,8 @@ impl BTreeCursor {
 
         let mut pc = free_block_pointer as usize;
         if pc > 0 {
-            let mut next = 0;
-            let mut size = 0;
+            let mut next;
+            let mut size;
             if pc < first_byte_in_cell_content as usize {
                 // corrupt
                 todo!("corrupted page");
@@ -730,8 +727,8 @@ impl BTreeCursor {
         //   return SQLITE_CORRUPT_PAGE(pPage);
         // }
         // don't count header and cell pointers?
-        nfree = nfree - first_cell as usize;
-        return nfree as u16;
+        nfree -= first_cell as usize;
+        nfree as u16
     }
 }
 
